@@ -1,0 +1,31 @@
+name: Aktualizacia kodov zo Sloger feedu
+
+on:
+  schedule:
+    - cron: "15 2 * * *"   # kazdy den o 02:15 UTC
+  workflow_dispatch: {}     # moznost spustit rucne tlacidlom
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stiahnut feed a vygenerovat codes.json
+        run: python3 update_codes.py
+
+      - name: Commitnut zmeny
+        run: |
+          git config user.name "codes-bot"
+          git config user.email "actions@github.com"
+          git add codes.json
+          if git diff --cached --quiet; then
+            echo "Ziadne zmeny."
+          else
+            git commit -m "Aktualizacia codes.json ($(date -u +%Y-%m-%d))"
+            git push
+          fi
